@@ -1,0 +1,25 @@
+{
+  "repositories": {
+    "packagist": {
+      "type": "composer",
+      "url": "https://packagist.phpcomposer.com"
+    }
+  },
+  "name": "gukai/rpc",
+  "description": "Bilibili swoole framework.",
+  "authors": [
+    {
+      "name": "___Shies",
+      "email": "gukai@bilibili.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.3.10"
+  },
+  "autoload": {
+    "psr-4": {
+      "rpc\\": "src/"
+    }
+  },
+  "minimum-stability": "dev"
+}
