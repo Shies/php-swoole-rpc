@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: bilibili
+ * User: gukai@bilibili.com
  * Date: 16/8/18
  * Time: 下午12:01
  */
@@ -13,10 +13,11 @@ foreach ($argv AS $val)
     switch ($val)
     {
         case "server":
-            $server = (new rpc\rpcServer());
+            $server = (new RPC\Server());
+            $server->start();
         break;
         case "client":
-            $client = (new rpc\rpcClient());
+            $client = (new RPC\Client());
             $client->connect();
             $client->shakehands();
         break;

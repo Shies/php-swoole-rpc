@@ -1,13 +1,13 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: bilibili
+ * User: gukai@bilibili.com
  * Date: 16/8/18
  * Time: 下午3:38
  */
-namespace rpc;
+namespace RPC;
 
-trait handle
+trait Handle
 {
 
     protected $text = 'let\'s say';

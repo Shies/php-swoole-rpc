@@ -5,27 +5,19 @@
  * Date: 16/8/15
  * Time: 下午5:40
  */
-namespace rpc;
-use rpc\handle;
+namespace RPC;
+use RPC\Handle;
 
-class rpcServer
+class Server
 {
-    use handle;
-    private $serv;
-    private static $config = [
-        'worker_num'  => 8,
-        'daemonize'   => false, // 是否作为守护进程,此配置一般配合log_file使用
-        'max_request' => 1000,
-        'log_file'    => './swoole.log',
-        'task_worker_num' => 8
-    ];
+    use Handle;
+    protected $serv;
+    const NO_DATA = 'no response';
 
 
     public function __construct()
     {
         $this->serv = new \swoole_server('0.0.0.0', 9501);
-        // 初始化swoole服务
-        $this->serv->set(static::$config);
         // 设置监听
         $this->serv->on('Start',   [$this, 'onStart']);
         $this->serv->on('Connect', [$this, 'onConnect']);
@@ -33,8 +25,20 @@ class rpcServer
         $this->serv->on("Close",   [$this, 'onClose']);
         $this->serv->on("Task",    [$this, 'onTask']);
         $this->serv->on("Finish",  [$this, 'onFinish']);
-        //开启
-        $this->serv->start();
+        // 初始化swoole服务
+        $this->serv->set([
+            'worker_num'  => 8,
+            'daemonize'   => false, // 是否作为守护进程,此配置一般配合log_file使用
+            'max_request' => 1000,
+            'log_file'    => './swoole.log',
+            'task_worker_num' => 8
+        ]);
+    }
+
+
+    public function start()
+    {
+        return $this->serv->start();
     }
 
 
@@ -52,19 +56,16 @@ class rpcServer
 
     public function onReceive($serv, $fd, $from_id, $data)
     {
-        static $error;
-        try
-        {
+        static $accept;
+        try {
             $param = ['fd' => $fd];
-            $param = array_merge(json_decode($data, true), $param);
+            $param = array_merge(json_decode($data, 1), $param);
             $serv->task(json_encode($param));
-        }
-        catch (\Exception $e)
-        {
-            $error = $e->getMessage();
+        } catch (\Exception $e) {
+            throw $e;
         }
 
-        return $error;
+        return ($accept = true);
     }
 
 
@@ -76,27 +77,35 @@ class rpcServer
 
     public function onTask($serv, $task_id, $from_id, $data)
     {
-        $fd = json_decode($data, true);
+        $fd = json_decode($data, 1);
 
-        $result = 'no data';
-        if (method_exists($this, $fd['method']))
-        {
-            $result = call_user_func([&$this, $fd['method']]);
+        $resp = null;
+        if (method_exists($this, $fd['method'])) {
+            $resp = call_user_func([&$this, $fd['method']]);
         }
 
-        if (is_array($result))
-        {
-            $result = json_encode($result);
+        if (is_null($resp)) {
+            $resp = static::NO_DATA;
         }
 
-        $serv->send($fd['fd'], 'Swoole: '.$result);
+        if (!is_string($resp)) {
+            $resp = json_encode($resp);
+        }
+
+        $fd['resp'] = (string) $resp;
+        $serv->finish(json_encode($fd));
     }
+
 
 
     public function onFinish($serv, $task_id, $data)
     {
-        echo "Task {$task_id} finish\n";
-        echo "Result: {$data}\n";
+        $fd = json_decode($data, 1);
+        if (!isset($fd['fd'])) {
+            return false;
+        }
+
+        $serv->send($fd['fd'], "Result: {$fd['resp']}\n");
     }
 
 }

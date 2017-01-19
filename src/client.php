@@ -5,15 +5,13 @@
  * Date: 16/8/15
  * Time: 下午6:14
  */
-namespace rpc;
+namespace RPC;
 
-class rpcClient
+class Client
 {
-    private $client;
-    private $port = '9501';
-    private $host = '127.0.0.1';
-    private $rpc_class = 'rpcServer';
-    private $rpc_method = 'sharkhands';
+    protected $client;
+    protected $remote;
+    protected $function = ['Handle', 'shakehands'];
 
 
     public function __construct()
@@ -28,15 +26,18 @@ class rpcClient
 
     public function __call($method, $args)
     {
-        $params = ['method' => $method, 'args' => $args];
-        $this->send(json_encode($params));
+        $class = current($this->function);
+        if ($this->remote !== null) {
+            $class = $this->remote;
+        }
+
+        $this->send(['class' => $class, 'method' => $method, 'args' => $args]);
     }
 
 
-    public function connect()
+    public function connect($host = '0.0.0.0', $port = 9501)
     {
-        if (!$fp = $this->client->connect($this->host, $this->port, 1))
-        {
+        if (!$fp = $this->client->connect($host, $port, 1)) {
             echo "Error: {$fp->errMsg}[{$fp->errCode}]\n";
             return;
         }
@@ -51,22 +52,25 @@ class rpcClient
             fwrite(STDOUT, "Enter Msg:");
             $msg = trim(fgets(STDIN));
 
-            $class = 'handle';
-            $method = $msg;
+            if (!$msg) {
+                list($class, $method) = $this->function;
+            } else {
+                $class = current($this->function);
+                $method = $msg;
+            }
 
-            $param = ['class' => $class, 'method' => $method];
-            $this->send(json_encode($param));
+            $this->send(['class' => $class, 'method' => $method]);
         });
     }
 
 
     public function onReceive($cli, $data)
     {
-        if (!empty($data))
-        {
+        if (!empty($data)) {
             echo "Received: ".$data."\n";
         }
-        $this->client->close();
+
+        return $this->client->close();
     }
 
 
@@ -78,8 +82,7 @@ class rpcClient
 
     public function onError()
     {
-        if (!$this->isConnected())
-        {
+        if (!$this->isConnected()) {
             echo "Error: no connect\n";
             return;
         }
@@ -88,7 +91,11 @@ class rpcClient
 
     public function send($data)
     {
-        $this->client->send($data);
+        if (!is_string($data)) {
+            $data = json_encode($data);
+        }
+
+        return $this->client->send($data);
     }
 
 
