@@ -1,6 +1,6 @@
 <?php
 /**
- * Created by PhpStorm.
+ * 启动server或者client.
  * User: gukai@bilibili.com
  * Date: 16/8/18
  * Time: 下午12:01

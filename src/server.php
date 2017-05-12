@@ -1,6 +1,6 @@
 <?php
 /**
- * Created by PhpStorm.
+ * 接受请求服务层.
  * User: gukai@bilibili.com
  * Date: 16/8/15
  * Time: 下午5:40
