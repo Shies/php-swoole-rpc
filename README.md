@@ -10,7 +10,7 @@ Swoole RPC Service
 # How to start
 
 ```bash
-git clone https://github.com/higherchen/authority.git
+git clone https://github.com/Shies/swoole-rpc.git
 cd swoole-rpc/
 composer install
 php demo.php server | php demo.php client
