@@ -1,2 +1,17 @@
-### PHP-Swoole-RPC
-This's a use swoole framework write rpc for php;
+# Introduce
+
+Swoole RPC Service
+
+# Required
+
+ 1. php-5.4+
+ 2. php-swoole
+
+# How to start
+
+```bash
+git clone https://github.com/higherchen/authority.git
+cd swoole-rpc/
+composer install
+php demo.php server | php demo.php client
+```
